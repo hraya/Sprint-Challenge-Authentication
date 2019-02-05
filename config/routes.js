@@ -1,6 +1,9 @@
 const axios = require('axios');
+const db = require('../database/dbConfig.js');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
-const { authenticate } = require('../auth/authenticate');
+const { authenticate, generateToken } = require('../auth/authenticate');
 
 module.exports = server => {
   server.post('/api/register', register);
@@ -8,12 +11,34 @@ module.exports = server => {
   server.get('/api/jokes', authenticate, getJokes);
 };
 
+
+
 function register(req, res) {
   // implement user registration
+  const creds = req.body;
+  const hash = bcrypt.hashSync(creds.password, 14);
+  creds.password = hash;
+  db.insert(creds)
+  .then(ids =>{
+    db.findById(ids[0])
+    .then(user =>{
+      console.log(user)
+      const token = generateToken(user)
+      res.status(201).json({username:user.username, token})
+    }).catch(err =>{
+      console.log('in the second then', err)
+      res.status(500).json({error:"could not make new user"})
+    })
+  }).catch(err =>{
+    console.log('in the first then', err)
+    res.status(500).json(err)
+  })
+
 }
 
 function login(req, res) {
   // implement user login
+
 }
 
 function getJokes(req, res) {
