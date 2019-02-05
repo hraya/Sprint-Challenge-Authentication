@@ -20,17 +20,14 @@ function register(req, res) {
     .then(ids => {
       db.findById(ids[0])
         .then(user => {
-          console.log(user);
           const token = generateToken(user);
           res.status(201).json({ username: user.username, token });
         })
         .catch(err => {
-          console.log("in the second then", err);
           res.status(500).json({ error: "could not make new user" });
         });
     })
     .catch(err => {
-      console.log("in the first then", err);
       res.status(500).json(err);
     });
 }
